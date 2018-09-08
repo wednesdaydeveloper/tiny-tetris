@@ -1,0 +1,43 @@
+.tetris-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.tetris-table {
+  border: 2px black solid;
+}
+
+.tetris-table td {
+  border: 1px black solid;
+  width: 10px;
+  height: 10px;
+}
+
+.tetris-table td.l1 {
+  background-color: red;
+}
+
+.tetris-table td.l2 {
+  background-color: yellow;
+}
+
+.tetris-table td.l3 {
+  background-color: purple;
+}
+
+.tetris-table td.l4 {
+  background-color: green;
+}
+
+.tetris-table td.l5 {
+  background-color: blue;
+}
+
+.tetris-table td.l6 {
+  background-color: orange;
+}
+
+.tetris-table td.l7 {
+  background-color: lightblue;
+}
+
