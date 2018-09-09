@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import './index.css';
-import Tetris from './tetris/Container';
+import Tetris from './containers/TetrisTableContainer';
 
 import store from './Store';
 import registerServiceWorker from './registerServiceWorker';

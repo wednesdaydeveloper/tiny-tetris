@@ -1,27 +1,8 @@
-import { Action, createAction, handleActions } from 'redux-actions';
-import { ITetrisState, CTetrisState } from './TetrisState'
+import { Action, handleActions } from 'redux-actions';
+import { TIMER_TICK, INPUT_MOVE_LEFT, INPUT_MOVE_RIGHT, INPUT_ROTATE_CLOCKWISE, INPUT_ROTATE_COUNTER_CLOCKWISE, INPUT_DECIDE } from '../actions'
+import { ITetrisState, CTetrisState, createState, addTable } from './TetrisState'
 import { CFallingTetrimino, IFallingTetrimino, createFallingTetrimino } from './FallingTetrimino'
 
-// //
-// // action
-// //
-export const TIMER_TICK: string                     = 'tetris/tick';
-export const INPUT_MOVE_LEFT: string                = 'tetris/left';
-export const INPUT_MOVE_RIGHT: string               = 'tetris/right';
-export const INPUT_ROTATE_CLOCKWISE: string         = 'tetris/clockwise';
-export const INPUT_ROTATE_COUNTER_CLOCKWISE: string = 'tetris/counter_clockwise';
-export const INPUT_DECIDE: string                   = 'tetris/decide';
-export const GAMEOVER: string                       = 'tetris/gameover';
-
-// //
-// //  action creator
-// //
-export const timeTick               = createAction<number, number>(TIMER_TICK, (num: number) => num);
-export const moveLeft               = createAction(INPUT_MOVE_LEFT);
-export const moveRight              = createAction(INPUT_MOVE_RIGHT);
-export const rotateClockwise        = createAction(INPUT_ROTATE_CLOCKWISE);
-export const rotateCounterClockwise = createAction(INPUT_ROTATE_COUNTER_CLOCKWISE);
-export const decide                 = createAction(INPUT_DECIDE);
 
 /**
  * state の初期値
@@ -31,13 +12,6 @@ const initState: ITetrisState = createState();
 export const width = 10;
 export const height = 20;
 
-function createState(): ITetrisState {
-  return new CTetrisState({
-    tick: 0,
-    falling: createFallingTetrimino(),
-    interval: 1000,
-  })
-}
 
 function canMove(falling: IFallingTetrimino, table: number[][], dx: number, dy: number): boolean {
   const mask = falling.getMask();
@@ -56,10 +30,9 @@ function canMove(falling: IFallingTetrimino, table: number[][], dx: number, dy: 
 }
 
 function landingPoint(state: ITetrisState): number {
-  const falling = state.falling;
+  const { falling, table } = state;
   const mask = falling.getMask();
   const { locationY } = falling;
-  const table = state.createTable(false);
 
   for(let h = 0; h < height - locationY; h++) {
     if (!canMove(falling, table, 0, h)) {
@@ -70,30 +43,53 @@ function landingPoint(state: ITetrisState): number {
   return height - mask.length
 }
 
-function isLanding(state: ITetrisState): boolean {
-  const falling = state.falling;
-  const table = state.createTable(false);
+/**
+ * 一行埋まったらその行を消す。
+ * @param table 
+ */
+function clearRows(table: number[][]): number[][] {
 
-  return !canMove(falling, table, 0, 1);
+  //  横一列が０以外で埋まっていたら、その行のindexをrowsに追加
+  const rows = [];
+  for (let i=0; i<table.length; i++) {
+    if (table[i].every(c => c !==0)) {
+      rows.push(i);
+    }
+  }
+
+  if (rows.length > 0) {
+    const newtable = []
+    for (let i=0; i<rows.length; i++) {
+      newtable.push(Array(width).fill(0));
+    }
+    for (let i=0; i<height; i++) {
+      if (rows.indexOf(i) < 0) {
+        newtable.push(table[i])
+      }
+    }
+    return newtable;
+  } else {
+    return table;
+  }  
 }
 
 function tickHandler(state: ITetrisState, action: Action<number>) {
   const tick = state.tick + action.payload!;
   const locationY = state.falling.locationY + 1;
-  const table = state.createTable(false);
+  const { table } = state;
 
   let falling;
   let gameover = false;
-  if (isLanding(state)) {
+  if (!canMove(state.falling, table, 0, 1)) {
     falling = createFallingTetrimino();
-
 
     if (!canMove(falling, table, 0, 0)) {
       gameover = true;;
       return new CTetrisState({ ...state, gameover });;
     }
 
-    state.landed = [...state.landed, state.falling];
+    addTable(table, state.falling);
+    state.table = clearRows(table);
   } else {
     falling = new CFallingTetrimino({...state.falling, locationY});
   }
@@ -101,8 +97,7 @@ function tickHandler(state: ITetrisState, action: Action<number>) {
 }
 
 function leftHandler(state: ITetrisState, action: Action<number>) {
-  const falling = state.falling;
-  const table = state.createTable(false);
+  const { falling, table } = state;
 
   const locationX = canMove(falling, table, -1, 0)
     ? falling.locationX - 1
@@ -111,8 +106,7 @@ function leftHandler(state: ITetrisState, action: Action<number>) {
 }
 
 function rightHandler(state: ITetrisState, action: Action<number>) {
-  const falling = state.falling;
-  const table = state.createTable(false);
+  const { falling, table } = state;
   const locationX = canMove(falling, table, +1, 0)
     ? falling.locationX + 1
     : falling.locationX;
@@ -122,14 +116,17 @@ function rightHandler(state: ITetrisState, action: Action<number>) {
 function decideHandler(state: ITetrisState, action: Action<number>) {
   const locationY = landingPoint(state);
   const land = new CFallingTetrimino({...state.falling, locationY });
-  const landed = [...state.landed, land];
+
+  addTable(state.table, land);
+  state.table = clearRows(state.table);
+
   const falling = createFallingTetrimino();
-  return new CTetrisState({ ...state, falling, landed });
+  return new CTetrisState({ ...state, falling });
 }
 
 function rotationClockwiseHandler(state: ITetrisState, action: Action<number>) {
   const rotation = (state.falling.rotation + 1 ) % 4
-  const table = state.createTable(false);
+  const table = state.table;
   const falling = new CFallingTetrimino({...state.falling, rotation });
 
   return canMove(falling, table, 0, 0)
@@ -139,7 +136,7 @@ function rotationClockwiseHandler(state: ITetrisState, action: Action<number>) {
 
 function rotationCounterClockwiseHandler(state: ITetrisState, action: Action<number>) {
   const rotation = (state.falling.rotation + 3 ) % 4
-  const table = state.createTable(false);
+  const table = state.table;
   const falling = new CFallingTetrimino({...state.falling, rotation });
 
   return canMove(falling, table, 0, 0)

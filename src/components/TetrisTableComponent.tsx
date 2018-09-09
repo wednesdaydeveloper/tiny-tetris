@@ -1,6 +1,6 @@
 import * as React from 'react';
-import './Component.css';
-import { IFallingTetrimino } from './FallingTetrimino'
+import './TetrisTableComponent.css';
+import { IFallingTetrimino } from '../reducers/FallingTetrimino'
 
 export interface IStateProps {
   falling: IFallingTetrimino;

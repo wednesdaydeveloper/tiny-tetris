@@ -1,0 +1,23 @@
+version: "3"
+services:
+  nodeapp:
+    ports:
+      - "3000:3000"
+    volumes:
+      - ".:/mnt"
+    container_name: "tetris"
+    image: node:latest
+    env_file: .env
+    command: /sbin/init -D
+
+version: "3"
+services:
+  nodeapp:
+    ports:
+      - "3000:3000"
+    volumes:
+      - ".:/mnt"
+    container_name: "tetris"
+    image: node:latest
+    env_file: .env
+    command: /sbin/init -D

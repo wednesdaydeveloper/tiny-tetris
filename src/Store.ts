@@ -1,8 +1,8 @@
 import { applyMiddleware, createStore } from 'redux';
 import { createLogger } from 'redux-logger';
 import createSagaMiddleware from 'redux-saga';
-import reducer from './tetris/module';
-import sagas from './tetris/sagas';
+import reducer from './reducers';
+import sagas from './sagas';
 
 const logger = createLogger();
 const sagaMiddleware = createSagaMiddleware();

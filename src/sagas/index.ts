@@ -1,7 +1,7 @@
 import { delay } from "redux-saga";
 import { call, fork, put, select } from 'redux-saga/effects';
-import { timeTick } from './module';
-import { ITetrisState } from './TetrisState'
+import { timeTick } from '../actions';
+import { ITetrisState } from '../reducers/TetrisState'
 
 function* timerLoop() {
   while(true) {

@@ -1,14 +1,14 @@
 import { connect } from 'react-redux';
 import { Action, Dispatch } from 'redux';
-import Component, { IStateProps, IDispatchProps } from './Component';
-import { moveLeft, moveRight, rotateClockwise, rotateCounterClockwise, decide} from './module';
-import { ITetrisState } from './TetrisState'
+import Component, { IStateProps, IDispatchProps } from '../components/TetrisTableComponent';
+import { moveLeft, moveRight, rotateClockwise, rotateCounterClockwise, decide} from '../actions';
+import { ITetrisState, copyTable } from '../reducers/TetrisState'
 
 export function mapStateToProps(state: ITetrisState): IStateProps {
   return {
     falling: state.falling,
     gameover: state.gameover,
-    createTable: () => state.createTable(true),
+    createTable: () => copyTable(state),
   };
 }
 
